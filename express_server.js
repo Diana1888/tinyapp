@@ -12,8 +12,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+//Generate a Random Short URL ID
 function generateRandomString() {
-  return Math.random().toString(36).substring(6);
+  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const stringLength = 6;
+
+  for (let i = 0; i < stringLength; i++) {
+    let num = Math.floor(Math.random() * alphanumeric.length)
+    result += alphanumeric[num]
+  }
+  return result;
 }
 
 app.get("/", (req, res) => {
@@ -30,6 +39,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
@@ -39,13 +49,20 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+
+app.get("/u/:id", (req, res) => {
+  const shortUrl = req.params.id;
+  const longURL = urlDatabase[shortUrl];
+  res.redirect(longURL);
 });
 
+//Add a POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const shortUrl = generateRandomString();
+  console.log(req.body, shortUrl); // Log the POST request body to the console
+  urlDatabase[shortUrl]  = req.body.longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${shortUrl}`);
 });
 
 app.listen(PORT, () => {
