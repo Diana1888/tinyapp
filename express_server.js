@@ -44,7 +44,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-
+//Add a GET Route to show and Update Tiny URL
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase };
   res.render("urls_show", templateVars);
@@ -71,6 +71,14 @@ app.post('/urls/:id/delete', (req, res) => {
   const {id} = req.params;
   delete urlDatabase[id]; 
   res.redirect('/urls');
+})
+
+
+//Add POST Route to Edit URL resource
+app.post('/urls/:id/edit', (req, res) => {
+  const {id} = req.params; 
+  urlDatabase[id]  = req.body.longURL;
+  res.redirect(`/urls`)
 })
 
 app.listen(PORT, () => {
