@@ -44,12 +44,13 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase };
   res.render("urls_show", templateVars);
 });
 
-
+//Redirect to Url after requesting Url id
 app.get("/u/:id", (req, res) => {
   const shortUrl = req.params.id;
   const longURL = urlDatabase[shortUrl];
@@ -64,6 +65,13 @@ app.post("/urls", (req, res) => {
   console.log(urlDatabase);
   res.redirect(`/urls/${shortUrl}`);
 });
+
+//Add POST Route to Delete URL resource
+app.post('/urls/:id/delete', (req, res) => {
+  const {id} = req.params;
+  delete urlDatabase[id]; 
+  res.redirect('/urls');
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
