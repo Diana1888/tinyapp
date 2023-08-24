@@ -22,8 +22,8 @@ function generateRandomString() {
   const stringLength = 6;
 
   for (let i = 0; i < stringLength; i++) {
-    let num = Math.floor(Math.random() * alphanumeric.length)
-    result += alphanumeric[num]
+    let num = Math.floor(Math.random() * alphanumeric.length);
+    result += alphanumeric[num];
   }
   return result;
 }
@@ -38,7 +38,10 @@ app.get("/urls.json", (req, res) => {
 
 //use to pass URL data to template
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"],
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -46,12 +49,18 @@ app.get("/urls", (req, res) => {
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_new", templateVars);
 });
 
 //Add a GET Route to show and Update Tiny URL
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase };
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase,
+    username: req.cookies["username"], };
   res.render("urls_show", templateVars);
 });
 
@@ -76,16 +85,16 @@ app.post("/urls", (req, res) => {
 //Add POST Route to Delete URL resource
 app.post('/urls/:id/delete', (req, res) => {
   const {id} = req.params;
-  delete urlDatabase[id]; 
+  delete urlDatabase[id];
   res.redirect('/urls');
-})
+});
 
 
 //Add POST Route to Edit URL resource
 app.post('/urls/:id/edit', (req, res) => {
-  const {id} = req.params; 
+  const {id} = req.params;
   urlDatabase[id]  = req.body.longURL;
-  res.redirect(`/urls`)
+  res.redirect(`/urls`);
 });
 
 
