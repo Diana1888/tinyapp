@@ -98,7 +98,7 @@ app.post('/urls/:id/edit', (req, res) => {
 });
 
 
-//Add POST Route to let user to Log in
+//Add POST Route to let user to Log in and set cookies.
 
 app.post('/login', (req, res) => {
   const username = req.body.username;
@@ -107,6 +107,11 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+//ADD POST Route to let user to Logout and clear cookies.
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls');
+})
 
 
 
