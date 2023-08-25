@@ -42,7 +42,7 @@ function generateRandomString() {
 }
 
 //Function to search user by email
-function searchUserByEmail(email) {
+function getUserByEmail(email) {
   for (const userId in users) {
     const user = users[userId];
     if (user.email === email) {
@@ -147,18 +147,18 @@ app.post('/register', (req, res) => {
   users[user_id] = {id: user_id, email, password}
   
   if (!email || !password) {
-    return res.status(401).send("Please enter your email and/or password");
+    return res.status(400).send("Please enter your email and/or password");
   }
 
-  const user = searchUserByEmail(email);
+  const user = getUserByEmail(email);
   
   if (user && user.password === password) {
     res.cookie('user_id', user_id);
     res.redirect('/urls');
   } else {
-    return res.status(401).send("A user is already registered with this e-mail address");
+    return res.status(400).send("A user is already registered with this e-mail address");
   }
-
+  console.log(user);
 
 
 })
