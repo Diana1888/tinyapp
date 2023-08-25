@@ -41,6 +41,17 @@ function generateRandomString() {
   return result;
 }
 
+//Function to search user by email
+function searchUserByEmail(email) {
+  for (const userId in users) {
+    const user = users[userId];
+    if (user.email === email) {
+      return user;
+    }
+  }
+  return null;
+}
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -53,7 +64,7 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]],
   };
   res.render("urls_index", templateVars);
 });
@@ -68,7 +79,7 @@ app.get('/register', (req, res) => {
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_new", templateVars);
 });
@@ -78,7 +89,8 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase,
-    username: req.cookies["username"], };
+    user: users[req.cookies["user_id"]]
+   };
   res.render("urls_show", templateVars);
 });
 
@@ -119,9 +131,11 @@ app.post('/urls/:id/edit', (req, res) => {
 //Add POST Route to let user to Log in and set cookies.
 
 app.post('/login', (req, res) => {
-  const username = req.body.username;
+console.log("cookies", req.cookies);
+  const user = req.cookies.user;
+  console.log(user);
 
-  res.cookie('username', username);
+  res.cookie('user', user);
   res.redirect('/urls');
 });
 
@@ -131,16 +145,27 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password; 
   users[user_id] = {id: user_id, email, password}
-  console.log(user_id, email, password);
- 
-  res.cookie('user_id', user_id);
-  console.log(users);
-  res.redirect('/urls');
+  
+  if (!email || !password) {
+    return res.status(401).send("Please enter your email and/or password");
+  }
+
+  const user = searchUserByEmail(email);
+  
+  if (user && user.password === password) {
+    res.cookie('user_id', user_id);
+    res.redirect('/urls');
+  } else {
+    return res.status(401).send("A user is already registered with this e-mail address");
+  }
+
+
+
 })
 
 //ADD POST Route to let user to Logout and clear cookies.
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 })
 
