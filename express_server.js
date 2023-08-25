@@ -45,6 +45,11 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//Route to Show Registration form
+app.get('/register', (req, res) => {
+  res.render('register');
+})
+
 
 
 //Add a GET Route to Show the Form
