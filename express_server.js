@@ -15,6 +15,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 //Generate a Random Short URL ID
 function generateRandomString() {
   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -79,9 +92,9 @@ app.get("/u/:id", (req, res) => {
 //Add a POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
   const shortUrl = generateRandomString();
-  console.log(req.body, shortUrl); // Log the POST request body to the console
+  // console.log(req.body, shortUrl); // Log the POST request body to the console
   urlDatabase[shortUrl]  = req.body.longURL;
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   res.redirect(`/urls/${shortUrl}`);
 });
 
@@ -111,6 +124,19 @@ app.post('/login', (req, res) => {
   res.cookie('username', username);
   res.redirect('/urls');
 });
+
+//ADD POST Route to handle registration
+app.post('/register', (req, res) => {
+  const user_id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password; 
+  users[user_id] = {id: user_id, email, password}
+  console.log(user_id, email, password);
+ 
+  res.cookie('user_id', user_id);
+  console.log(users);
+  res.redirect('/urls');
+})
 
 //ADD POST Route to let user to Logout and clear cookies.
 app.post('/logout', (req, res) => {
