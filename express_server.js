@@ -26,6 +26,11 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+  user3RandomID: {
+    id: "user3RandomID",
+    email: "user3@example.com",
+    password: "aaa",
+  },
 };
 
 //Generate a Random Short URL ID
@@ -76,7 +81,13 @@ app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
-  res.render('register', templateVars);
+
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    return res.redirect('/urls')
+  } 
+
+    res.render('register', templateVars);
 });
 
 //Route to show Log in form
@@ -84,6 +95,12 @@ app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
+
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    return res.redirect('/urls')
+  } 
+
   res.render('login', templateVars);
 });
 
@@ -94,6 +111,11 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
+
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.redirect('/login')
+  } 
   res.render("urls_new", templateVars);
 });
 
@@ -110,6 +132,11 @@ app.get("/urls/:id", (req, res) => {
 //Redirect to Url after requesting Url id
 app.get("/u/:id", (req, res) => {
   const shortUrl = req.params.id;
+
+  if (!urlDatabase[shortUrl]) {
+    return res.status(404).send("There is no shortUrl found");
+  }
+
   const longURL = urlDatabase[shortUrl];
   res.redirect(longURL);
 });
@@ -120,6 +147,10 @@ app.post("/urls", (req, res) => {
   // console.log(req.body, shortUrl); // Log the POST request body to the console
   urlDatabase[shortUrl]  = req.body.longURL;
   // console.log(urlDatabase);
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.status(400).send("Only registered and logged in users can create new tiny URLs.");
+  } 
   res.redirect(`/urls/${shortUrl}`);
 });
 
@@ -152,7 +183,7 @@ app.post('/register', (req, res) => {
   
   const user = getUserByEmail(email)
   if (user) {
-    return res.status(400).send("A user is already registered with this e-mail address");
+    return res.status(400).send(`A user is already registered with ${email} address`);
   }
 
   const user_id = generateRandomString();
