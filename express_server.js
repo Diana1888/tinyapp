@@ -74,6 +74,11 @@ app.get('/register', (req, res) => {
   res.render('register');
 })
 
+//Route to show Log in form
+app.get('/login', (req, res) => {
+  res.render('login')
+})
+
 
 
 //Add a GET Route to Show the Form
@@ -162,6 +167,8 @@ app.post('/register', (req, res) => {
 
 
 })
+
+
 
 //ADD POST Route to let user to Logout and clear cookies.
 app.post('/logout', (req, res) => {
