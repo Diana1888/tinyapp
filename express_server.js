@@ -44,8 +44,9 @@ const generateRandomString = () => {
 //Function to search user by email
 const getUserByEmail = (email) => {
   for (const userId in users) {
-    const user = users[userId];
-    if (user.email === email) return user;
+    if (users[userId].email === email) {
+      return users[userId];
+    }
   }
   return null;
 };
@@ -140,31 +141,29 @@ app.post('/urls/:id/edit', (req, res) => {
 });
 
 
-
-
 //ADD POST Route to handle registration
 app.post('/register', (req, res) => {
-  const user_id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  users[user_id] = {id: user_id, email, password};
   
   if (!email || !password) {
     return res.status(400).send("Please enter your email and/or password");
   }
-
-  const user = getUserByEmail(email);
   
+  const user = getUserByEmail(email)
   if (user) {
     return res.status(400).send("A user is already registered with this e-mail address");
   }
+
+  const user_id = generateRandomString();
+  users[user_id] = {id: user_id, email, password};
 
   res.cookie('user_id', user_id);
   res.redirect('/urls');
 });
 
-//Add POST Route to let user to Log in and set cookies.
 
+//Add POST Route to let user to Log in and set cookies.
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
