@@ -29,7 +29,7 @@ const users = {
 };
 
 //Generate a Random Short URL ID
-function generateRandomString() {
+const generateRandomString = () => {
   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   const stringLength = 6;
@@ -42,15 +42,15 @@ function generateRandomString() {
 }
 
 //Function to search user by email
-function getUserByEmail(email) {
+const getUserByEmail = (email) => {
   for (const userId in users) {
     const user = users[userId];
-    if (user.email === email) {
-      return user;
-    }
+    if (user.email === email) return user;
   }
   return null;
-}
+};
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -59,6 +59,7 @@ app.get("/", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
 
 //use to pass URL data to template
 app.get("/urls", (req, res) => {
@@ -71,13 +72,19 @@ app.get("/urls", (req, res) => {
 
 //Route to Show Registration form
 app.get('/register', (req, res) => {
-  res.render('register');
-})
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+  res.render('register', templateVars);
+});
 
 //Route to show Log in form
 app.get('/login', (req, res) => {
-  res.render('login')
-})
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+  res.render('login', templateVars);
+});
 
 
 
@@ -95,7 +102,7 @@ app.get("/urls/:id", (req, res) => {
     id: req.params.id,
     longURL: urlDatabase,
     user: users[req.cookies["user_id"]]
-   };
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -133,23 +140,14 @@ app.post('/urls/:id/edit', (req, res) => {
 });
 
 
-//Add POST Route to let user to Log in and set cookies.
 
-app.post('/login', (req, res) => {
-console.log("cookies", req.cookies);
-  const user = req.cookies.user;
-  console.log(user);
-
-  res.cookie('user', user);
-  res.redirect('/urls');
-});
 
 //ADD POST Route to handle registration
 app.post('/register', (req, res) => {
   const user_id = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password; 
-  users[user_id] = {id: user_id, email, password}
+  const password = req.body.password;
+  users[user_id] = {id: user_id, email, password};
   
   if (!email || !password) {
     return res.status(400).send("Please enter your email and/or password");
@@ -157,24 +155,45 @@ app.post('/register', (req, res) => {
 
   const user = getUserByEmail(email);
   
-  if (user && user.password === password) {
-    res.cookie('user_id', user_id);
-    res.redirect('/urls');
-  } else {
+  if (user) {
     return res.status(400).send("A user is already registered with this e-mail address");
   }
-  console.log(user);
 
+  res.cookie('user_id', user_id);
+  res.redirect('/urls');
+});
 
-})
+//Add POST Route to let user to Log in and set cookies.
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password) {
+    return res.status(400).send("Please enter your email and/or password");
+  }
+
+  const user = getUserByEmail(email);
+
+  if (!user) {
+    return res.status(403).send("Email doesn't exist");
+  }
+  if (user && user.password === password) {
+
+    res.cookie('user_id', user.id);
+    res.redirect('/urls');
+  } else {
+    return res.status(403).send("The e-mail and/or password you specified are not correct.");
+  }
+
+});
 
 
 
 //ADD POST Route to let user to Logout and clear cookies.
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  res.redirect('/urls');
-})
+  res.redirect('/login');
+});
 
 
 
