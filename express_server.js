@@ -211,16 +211,41 @@ app.post("/urls", (req, res) => {
 
 //Add POST Route to Delete URL resource
 app.post('/urls/:id/delete', (req, res) => {
-  const {id} = req.params;
-  delete urlDatabase[id];
+  const shortUrl = req.params.id;
+  const user = users[req.cookies["user_id"]];
+  
+  if (!user) {
+    return res.status(400).send("Only registered and logged in users can delete URLs.");
+  } 
+  if (user.id !== urlDatabase[shortUrl].userID) {
+    return res.status(403).send("You can't delete URLS that doesn't belong to you");
+  }
+
+  if (!urlDatabase[shortUrl]) {
+    return res.status(404).send("URL is not found");
+  }
+  delete urlDatabase[shortUrl];
   res.redirect('/urls');
 });
 
 
 //Add POST Route to Edit URL resource
-app.post('/urls/:id/edit', (req, res) => {
-  const {id} = req.params;
-  urlDatabase[id]  = req.body.longURL;
+app.post('/urls/:id', (req, res) => {
+  const shortUrl = req.params.id;
+  const user = users[req.cookies["user_id"]];
+  
+  if (!user) {
+    return res.status(400).send("Only registered and logged in users can edit URLs.");
+  } 
+  if (user.id !== urlDatabase[shortUrl].userID) {
+    return res.status(403).send("You can't edit URLS that doesn't belong to you");
+  }
+
+  if (!urlDatabase[shortUrl]) {
+    return res.status(404).send("URL is not found");
+  }
+  
+  urlDatabase[shortUrl].longURL  = req.body.longURL;
   res.redirect(`/urls`);
 });
 
