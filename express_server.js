@@ -11,9 +11,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
+
 
 const users = {
   userRandomID: {
@@ -56,6 +63,18 @@ const getUserByEmail = (email) => {
   return null;
 };
 
+//Check that URL belongs to user id
+const urlsForUser = (id) => {
+  let listUrls = {};
+  for (const shortUrl in urlDatabase) {
+    if (urlDatabase[shortUrl].userID === id) {
+      listUrls[shortUrl] = urlDatabase[shortUrl]
+    }
+  }
+  return listUrls;
+}
+
+// console.log(urlsForUser("aJ48lW"));
 
 
 app.get("/", (req, res) => {
@@ -69,12 +88,76 @@ app.get("/urls.json", (req, res) => {
 
 //use to pass URL data to template
 app.get("/urls", (req, res) => {
+
+
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.status(400).send("Only registered and logged in users can view URLs.");
+  } 
+
+  const userUrls = urlsForUser(user.id, urlDatabase);
   const templateVars = {
-    urls: urlDatabase,
+    urls: userUrls,
     user: users[req.cookies["user_id"]],
   };
-  res.render("urls_index", templateVars);
+
+    res.render("urls_index", templateVars);
+
 });
+
+
+
+
+
+//Add a GET Route to Show the Form
+app.get("/urls/new", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.redirect('/login')
+  } 
+  res.render("urls_new", templateVars);
+});
+
+//Add a GET Route to show and Update Tiny URL
+app.get("/urls/:id", (req, res) => {
+  const shortUrl = req.params.id;
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.status(400).send("Only registered and logged in users can view URLs.");
+  } 
+  
+
+  const userUrls = urlsForUser(user.id, urlDatabase);
+
+  if (!userUrls[shortUrl]){
+    return res.status(400).send("This URL dones't belonf to you");
+  }
+  
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[shortUrl].longURL,
+    user: users[req.cookies["user_id"]]
+  };
+
+  
+  console.log(templateVars);
+  res.render("urls_show", templateVars);
+});
+
+//Redirect to Url after requesting Url id
+app.get("/u/:id", (req, res) => {
+  const shortUrl = req.params.id;
+  if (!urlDatabase[shortUrl]) {
+    return res.status(404).send("There is no shortUrl found");
+  }
+
+  res.redirect(urlDatabase[shortUrl].longURL);
+});
+
 
 //Route to Show Registration form
 app.get('/register', (req, res) => {
@@ -105,52 +188,22 @@ app.get('/login', (req, res) => {
 });
 
 
-
-//Add a GET Route to Show the Form
-app.get("/urls/new", (req, res) => {
-  const templateVars = {
-    user: users[req.cookies["user_id"]]
-  };
-
-  const user = users[req.cookies["user_id"]];
-  if (!user) {
-    return res.redirect('/login')
-  } 
-  res.render("urls_new", templateVars);
-});
-
-//Add a GET Route to show and Update Tiny URL
-app.get("/urls/:id", (req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase,
-    user: users[req.cookies["user_id"]]
-  };
-  res.render("urls_show", templateVars);
-});
-
-//Redirect to Url after requesting Url id
-app.get("/u/:id", (req, res) => {
-  const shortUrl = req.params.id;
-
-  if (!urlDatabase[shortUrl]) {
-    return res.status(404).send("There is no shortUrl found");
-  }
-
-  const longURL = urlDatabase[shortUrl];
-  res.redirect(longURL);
-});
-
 //Add a POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
-  const shortUrl = generateRandomString();
-  // console.log(req.body, shortUrl); // Log the POST request body to the console
-  urlDatabase[shortUrl]  = req.body.longURL;
-  // console.log(urlDatabase);
   const user = users[req.cookies["user_id"]];
+  const shortUrl = generateRandomString();
+
+  urlDatabase[shortUrl]  = {
+    longURL: req.body.longURL,
+    userID: user.id
+  }
+
+  // console.log(urlDatabase[shortUrl].longURL);
+  
   if (!user) {
     return res.status(400).send("Only registered and logged in users can create new tiny URLs.");
   } 
+
   res.redirect(`/urls/${shortUrl}`);
 });
 
