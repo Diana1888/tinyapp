@@ -20,7 +20,7 @@ const users = {
     id: "user2RandomID",
     email: "test@email.com",
     password: "$2a$10$NzxTIzvhwPDR5dyV5Ap4m.qRTKq8lJzn9ll46FpBo5b/4a7FHNBeu", // password
-  }  
+  }
 };
 
 module.exports = { urlDatabase, users };
