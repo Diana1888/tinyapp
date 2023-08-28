@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -23,21 +24,18 @@ const urlDatabase = {
 
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+  user1RandomID: {
+    id: "user1RandomID",
+    email: "user@gmail.com",
+    password: "$2a$10$uBbNocseL78DMg8aeh0h/.vPvygCndai0hDnElT5BuOoO.0sY5bGy", // 123456
   },
   user2RandomID: {
     id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-  user3RandomID: {
-    id: "user3RandomID",
-    email: "user3@example.com",
-    password: "aaa",
-  },
+    email: "test@email.com",
+    password: "$2a$10$NzxTIzvhwPDR5dyV5Ap4m.qRTKq8lJzn9ll46FpBo5b/4a7FHNBeu", // password
+  }
+
+  
 };
 
 //Generate a Random Short URL ID
@@ -63,6 +61,7 @@ const getUserByEmail = (email) => {
   return null;
 };
 
+console.log(getUserByEmail("user3@example.com", users));
 //Check that URL belongs to user id
 const urlsForUser = (id) => {
   let listUrls = {};
@@ -255,6 +254,12 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   
+    // Create a hashed password
+  const salt = bcrypt.genSaltSync(10);
+  const hashedPassword = bcrypt.hashSync(password, salt);
+  console.log(password, hashedPassword);
+  
+
   if (!email || !password) {
     return res.status(400).send("Please enter your email and/or password");
   }
@@ -265,7 +270,7 @@ app.post('/register', (req, res) => {
   }
 
   const user_id = generateRandomString();
-  users[user_id] = {id: user_id, email, password};
+  users[user_id] = {id: user_id, email, hashedPassword};
 
   res.cookie('user_id', user_id);
   res.redirect('/urls');
@@ -280,18 +285,23 @@ app.post('/login', (req, res) => {
     return res.status(400).send("Please enter your email and/or password");
   }
 
-  const user = getUserByEmail(email);
+  const user = getUserByEmail(email, users);
 
   if (!user) {
     return res.status(403).send("Email doesn't exist");
   }
-  if (user && user.password === password) {
 
-    res.cookie('user_id', user.id);
-    res.redirect('/urls');
-  } else {
+  const matchedPassword = bcrypt.compareSync(password, user.password);
+  if (!matchedPassword){
+    console.log(password, user.password);
     return res.status(403).send("The e-mail and/or password you specified are not correct.");
   }
+
+
+  res.cookie('user_id', user.id);
+  res.redirect('/urls');
+
+
 
 });
 
