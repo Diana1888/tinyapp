@@ -4,13 +4,13 @@ const { getUserByEmail, urlsForUser } = require('../helpers.js');
 
 const testUsers = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
   "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
@@ -37,15 +37,15 @@ const testUrlDatabase = {
 
 describe('getUserByEmail', function() {
   it('should return a user with valid email', function() {
-    const user = getUserByEmail("user@example.com", testUsers)
+    const user = getUserByEmail("user@example.com", testUsers);
     const expectedUserID = "userRandomID";
-    assert.strictEqual(user.id, expectedUserID, "Email found in database")
+    assert.strictEqual(user.id, expectedUserID, "Email found in database");
   });
 
   it('should return undefined if email not found in database', function() {
-    const user = getUserByEmail("testingtest@example.com", testUsers)
-    const expectedUserID = "user2RandomID";
-    assert.strictEqual(user, undefined, "Email not found in database")
+    const user = getUserByEmail("testingtest@example.com", testUsers);
+    const expectedUserID = undefined;
+    assert.strictEqual(user, expectedUserID, "Email not found in database");
   });
 });
 
@@ -63,13 +63,13 @@ describe('urlsForUser', function() {
         userID: "userRandomID",
       },
     };
-    assert.deepEqual(userURLs, expectedURLs)
+    assert.deepEqual(userURLs, expectedURLs);
   });
 
   it('should return empty list if no URLs found per UserID', function() {
     const userURLs = urlsForUser("user3RandomID", testUrlDatabase);
     const expectedURLs =  {};
-    assert.deepEqual(userURLs, expectedURLs)
+    assert.deepEqual(userURLs, expectedURLs);
   });
 });
 
