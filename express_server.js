@@ -1,36 +1,43 @@
+// Packages
 const express = require("express");
-// const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
-const app = express();
 const PORT = 8080; // default port 8080
 
-//use EJS as its templating engine
+// Creating the epxress server
+const app = express();
+
+// Setting the view engine
 app.set("view engine", "ejs");
+
+
+
+// Middleware //
 
 //convert the request body into string
 app.use(express.urlencoded({ extended: true }));
-// app.use(cookieParser());
+
 app.use(cookieSession({
   name: 'session',
   keys: ["secretkey"],
-
-  // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
 
+// Data
 const { generateRandomString, getUserByEmail, urlsForUser} = require('./helpers');
-const { urlDatabase, users } = require('./database')
+const { urlDatabase, users } = require('./database');
 
 
-//use to pass URL data to template
+
+//GET Endpoints
+
+//Display Urls page
 app.get("/urls", (req, res) => {
-
-
   const userCookie = users[req.session["user_id"]];
+
   if (!userCookie) {
     return res.status(400).send("Only registered and logged in users can view URLs.");
-  } 
+  }
 
   const userUrls = urlsForUser(userCookie.id, urlDatabase);
   const templateVars = {
@@ -38,15 +45,11 @@ app.get("/urls", (req, res) => {
     user: userCookie,
   };
 
-    res.render("urls_index", templateVars);
-
+  res.render("urls_index", templateVars);
 });
 
 
-
-
-
-//Add a GET Route to Show the Form
+//Display new Url Form
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.session["user_id"]]
@@ -54,24 +57,25 @@ app.get("/urls/new", (req, res) => {
 
   const user = users[req.session["user_id"]];
   if (!user) {
-    return res.redirect('/login')
-  } 
+    return res.redirect('/login');
+  }
+
   res.render("urls_new", templateVars);
 });
 
-//Add a GET Route to show and Update Tiny URL
+
+//Display page with details of Url
 app.get("/urls/:id", (req, res) => {
   const shortUrl = req.params.id;
   const user = users[req.session["user_id"]];
   if (!user) {
     return res.status(400).send("Only registered and logged in users can view URLs.");
-  } 
-  
+  }
 
   const userUrls = urlsForUser(user.id, urlDatabase);
 
-  if (!userUrls[shortUrl]){
-    return res.status(400).send("This URL dones't belonf to you");
+  if (!userUrls[shortUrl]) {
+    return res.status(400).send("You are not authorized to edit url that doesn't belong to you");
   }
   
   const templateVars = {
@@ -80,10 +84,9 @@ app.get("/urls/:id", (req, res) => {
     user: users[req.session["user_id"]]
   };
 
-  
-  console.log(templateVars);
   res.render("urls_show", templateVars);
 });
+
 
 //Redirect to Url after requesting Url id
 app.get("/u/:id", (req, res) => {
@@ -96,7 +99,7 @@ app.get("/u/:id", (req, res) => {
 });
 
 
-//Route to Show Registration form
+//Display Registration form
 app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.session["user_id"]]
@@ -104,13 +107,14 @@ app.get('/register', (req, res) => {
 
   const user = users[req.session["user_id"]];
   if (user) {
-    return res.redirect('/urls')
-  } 
+    return res.redirect('/urls');
+  }
 
-    res.render('register', templateVars);
+  res.render('register', templateVars);
 });
 
-//Route to show Log in form
+
+//Display Login form
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.session["user_id"]]
@@ -118,42 +122,40 @@ app.get('/login', (req, res) => {
 
   const user = users[req.session["user_id"]];
   if (user) {
-    return res.redirect('/urls')
-  } 
+    return res.redirect('/urls');
+  }
 
   res.render('login', templateVars);
 });
 
+//POST Endpoints
 
-//Add a POST Route to Receive the Form Submission
+//Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
   const user = users[req.session["user_id"]];
   const shortUrl = generateRandomString();
 
   urlDatabase[shortUrl]  = {
     longURL: req.body.longURL,
-    userID: user.id
-  }
+    userID: user.id,
+  };
 
-  // console.log(urlDatabase[shortUrl].longURL);
-  
   if (!user) {
     return res.status(400).send("Only registered and logged in users can create new tiny URLs.");
-  } 
+  }
 
   res.redirect(`/urls/${shortUrl}`);
 });
 
 
-
-//Add POST Route to Delete URL resource
+//Route to Delete URL resource
 app.post('/urls/:id/delete', (req, res) => {
   const shortUrl = req.params.id;
   const user = users[req.session["user_id"]];
   
   if (!user) {
     return res.status(400).send("Only registered and logged in users can delete URLs.");
-  } 
+  }
   if (user.id !== urlDatabase[shortUrl].userID) {
     return res.status(403).send("You can't delete URLS that doesn't belong to you");
   }
@@ -161,19 +163,20 @@ app.post('/urls/:id/delete', (req, res) => {
   if (!urlDatabase[shortUrl]) {
     return res.status(404).send("URL is not found");
   }
+
   delete urlDatabase[shortUrl];
   res.redirect('/urls');
 });
 
 
-//Add POST Route to Edit URL resource
+//Route to Edit URL resource
 app.post('/urls/:id', (req, res) => {
   const shortUrl = req.params.id;
   const user = users[req.session["user_id"]];
   
   if (!user) {
     return res.status(400).send("Only registered and logged in users can edit URLs.");
-  } 
+  }
   if (user.id !== urlDatabase[shortUrl].userID) {
     return res.status(403).send("You can't edit URLS that doesn't belong to you");
   }
@@ -187,22 +190,21 @@ app.post('/urls/:id', (req, res) => {
 });
 
 
-//ADD POST Route to handle registration
+//Route to handle registration
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   
-    // Create a hashed password
+  // Create a hashed password
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync(password, salt);
-  console.log(password, hashedPassword);
   
 
   if (!email || !password) {
     return res.status(400).send("Please enter your email and/or password");
   }
   
-  const user = getUserByEmail(email, users)
+  const user = getUserByEmail(email, users);
   if (user) {
     return res.status(400).send(`A user is already registered with ${email} address`);
   }
@@ -215,7 +217,7 @@ app.post('/register', (req, res) => {
 });
 
 
-//Add POST Route to let user to Log in and set cookies.
+//Route to let user to Log in and set cookies.
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -230,19 +232,13 @@ app.post('/login', (req, res) => {
   }
 
   const matchedPassword = bcrypt.compareSync(password, user.password);
-  if (!matchedPassword){
-    console.log(password, user.password);
+  if (!matchedPassword) {
     return res.status(403).send("The e-mail and/or password you specified are not correct.");
   }
 
-
   req.session.user_id = user.id;
   res.redirect('/urls');
-
-
-
 });
-
 
 
 //ADD POST Route to let user to Logout and clear cookies.
@@ -251,8 +247,7 @@ app.post('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-
-
+// Start listening on PORT 8080
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
