@@ -1,5 +1,3 @@
-const { urlDatabase } = require("./database");
-
 //Generate a Random ID
 const generateRandomString = () => {
   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -11,7 +9,7 @@ const generateRandomString = () => {
     result += alphanumeric[num];
   }
   return result;
-}
+};
 
 //Check if user exist with provided email
 const getUserByEmail = (email, urlDatabase) => {
@@ -20,19 +18,19 @@ const getUserByEmail = (email, urlDatabase) => {
       return urlDatabase[userId];
     }
   }
-  return null;
+  return undefined;
 };
 
 
 //Return URL that matched with userID
-const urlsForUser = (id) => {
+const urlsForUser = (id, urlDatabase) => {
   let listUrls = {};
   for (const shortUrl in urlDatabase) {
     if (urlDatabase[shortUrl].userID === id) {
-      listUrls[shortUrl] = urlDatabase[shortUrl]
+      listUrls[shortUrl] = urlDatabase[shortUrl];
     }
   }
   return listUrls;
-}
+};
 
 module.exports = { generateRandomString, getUserByEmail, urlsForUser};
