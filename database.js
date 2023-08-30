@@ -19,7 +19,8 @@ const users = {
   user2RandomID: {
     id: "user2RandomID",
     email: "test@email.com",
-    password: "$2a$10$NzxTIzvhwPDR5dyV5Ap4m.qRTKq8lJzn9ll46FpBo5b/4a7FHNBeu", // password
+    password: "$2a$10$re6PgFXXqk6Ncp4lT3wCJu.08tK9QSb/7BNGo/cGa3U56WD59FgKi", // password
+    //
   }
 };
 
