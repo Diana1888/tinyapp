@@ -30,6 +30,15 @@ const { urlDatabase, users } = require('./database');
 
 
 //GET Endpoints
+app.get("/", (req, res) => {
+   const userCookie = users[req.session["user_id"]];
+
+   if (userCookie) {
+    return res.redirect("/urls");
+  }
+
+  res.redirect('/login')
+})
 
 //Display Urls page
 app.get("/urls", (req, res) => {
@@ -195,11 +204,6 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   
-  // Create a hashed password
-  const salt = bcrypt.genSaltSync(10);
-  const hashedPassword = bcrypt.hashSync(password, salt);
-  
-
   if (!email || !password) {
     return res.status(400).send("Please enter your email and/or password");
   }
@@ -208,9 +212,14 @@ app.post('/register', (req, res) => {
   if (user) {
     return res.status(400).send(`A user is already registered with ${email} address`);
   }
-
   const user_id = generateRandomString();
-  users[user_id] = {id: user_id, email, hashedPassword};
+
+   // Create a hashed password
+   const salt = bcrypt.genSaltSync(10);
+   const hashedPassword = bcrypt.hashSync(password, salt);
+
+   users[user_id] = {id: user_id, email: email, password: hashedPassword};  
+   console.log(users);
 
   req.session.user_id = user_id;
   res.redirect('/urls');
@@ -226,13 +235,11 @@ app.post('/login', (req, res) => {
   }
 
   const user = getUserByEmail(email, users);
+  console.log(user);
 
-  if (!user) {
-    return res.status(403).send("Email doesn't exist");
-  }
 
   const matchedPassword = bcrypt.compareSync(password, user.password);
-  if (!matchedPassword) {
+  if (!user || !matchedPassword) {
     return res.status(403).send("The e-mail and/or password you specified are not correct.");
   }
 
@@ -243,7 +250,7 @@ app.post('/login', (req, res) => {
 
 //ADD POST Route to let user to Logout and clear cookies.
 app.post('/logout', (req, res) => {
-  req.session.user_id = null;
+  req.session = null;
   res.redirect('/login');
 });
 
