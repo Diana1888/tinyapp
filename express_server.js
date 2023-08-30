@@ -219,7 +219,6 @@ app.post('/register', (req, res) => {
    const hashedPassword = bcrypt.hashSync(password, salt);
 
    users[user_id] = {id: user_id, email: email, password: hashedPassword};  
-   console.log(users);
 
   req.session.user_id = user_id;
   res.redirect('/urls');
@@ -235,11 +234,13 @@ app.post('/login', (req, res) => {
   }
 
   const user = getUserByEmail(email, users);
-  console.log(user);
 
+  if (!user) {
+    return res.status(403).send("The user is not found");
+  }
 
   const matchedPassword = bcrypt.compareSync(password, user.password);
-  if (!user || !matchedPassword) {
+  if (!matchedPassword) {
     return res.status(403).send("The e-mail and/or password you specified are not correct.");
   }
 
